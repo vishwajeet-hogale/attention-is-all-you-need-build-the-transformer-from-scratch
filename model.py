@@ -126,8 +126,20 @@ def build_sinusoidal_positional_encoding(max_len, d_model):
 
     return pe
 
-# Step 13 - add_positional_encoding_to_embeddings (not yet solved)
-# TODO: implement
+# Step 13 - add_positional_encoding_to_embeddings
+import torch
+
+def add_positional_encoding_to_embeddings(embedded_batch, positional_encoding):
+    # TODO: add the first L rows of positional_encoding to embedded_batch and return the sum.
+    B, L, D = embedded_batch.shape
+    max_len, pe_dim = positional_encoding.shape
+
+    if pe_dim != D:
+        raise ValueError(f"d_model mismatch: embeddings {D}, encoding {pe_dim}")
+    if max_len < L:
+        raise ValueError(f"sequence length {L} exceeds max_len {max_len}")
+
+    return embedded_batch + positional_encoding[:L]
 
 # Step 14 - build_padding_mask (not yet solved)
 # TODO: implement
