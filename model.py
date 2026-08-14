@@ -253,13 +253,8 @@ import torch
 
 def merge_heads_back_to_model_dim(multi_head_tensor):
     # TODO: merge the head axis back into the feature axis to reconstruct d_model
-    B, H, L, d_head = multi_head_tensor.shape
-    return (
-        multi_head_tensor
-        .transpose(1, 2)          # (B, L, H, d_head)
-        .contiguous()             # transpose left it non-contiguous
-        .view(B, L, H * d_head)   # (B, L, d_model)
-    )
+    B, N, L, d_head = multi_head_tensor.shape
+    return multi_head_tensor.permute(0,2,1,3).reshape(B, L, N*d_head)
 
 # Step 26 - apply_linear_projection (not yet solved)
 # TODO: implement
