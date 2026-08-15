@@ -256,8 +256,14 @@ def merge_heads_back_to_model_dim(multi_head_tensor):
     B, N, L, d_head = multi_head_tensor.shape
     return multi_head_tensor.permute(0,2,1,3).reshape(B, L, N*d_head)
 
-# Step 26 - apply_linear_projection (not yet solved)
-# TODO: implement
+# Step 26 - apply_linear_projection
+def apply_linear_projection(x, weight, bias):
+    # TODO: return x @ weight^T + bias (bias may be None) with shape (..., out_features)
+    proj = x @ weight.T
+    if bias is not None:
+        return proj + bias
+
+    return proj
 
 # Step 27 - project_to_query_key_value (not yet solved)
 # TODO: implement
