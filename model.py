@@ -328,8 +328,28 @@ def merge_heads_and_project_output(context, w_o, b_o):
 
     return merged @ w_o.T
 
-# Step 31 - assemble_multi_head_attention_forward (not yet solved)
-# TODO: implement
+# Step 31 - assemble_multi_head_attention_forward
+import math
+import torch
+
+def assemble_multi_head_attention_forward(query, key, value, w_q, w_k, w_v, w_o, num_heads, mask=None):
+    B, Lq, d_model = query.shape
+    Lk = key.size(1)
+    assert d_model % num_heads == 0, "d_model must be divisible by num_heads"
+    d_k = d_model // num_heads
+
+    q = query @ w_q
+    k = key   @ w_k
+    v = value @ w_v
+
+    q_h = q.view(B, Lq, num_heads, d_k).transpose(1, 2)
+    k_h = k.view(B, Lk, num_heads, d_k).transpose(1, 2)
+    v_h = v.view(B, Lk, num_heads, d_k).transpose(1, 2)
+
+    context, _ = multi_head_scaled_dot_product_attention(q_h, k_h, v_h, mask)
+
+    merged = context.transpose(1, 2).reshape(B, Lq, d_model)
+    return merged @ w_o
 
 # Step 32 - apply_ffn_first_linear_and_relu (not yet solved)
 # TODO: implement
