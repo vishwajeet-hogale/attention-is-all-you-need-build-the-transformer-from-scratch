@@ -310,7 +310,7 @@ def multi_head_scaled_dot_product_attention(q_h, k_h, v_h, mask=None):
     scores = (q_h @ k_h.transpose(-2, -1)) / math.sqrt(d_k)
 
     if mask is not None:
-        scores = scores.masked_fill(~mask, torch.finfo(scores.dtype).min)
+        scores = scores.masked_fill(~mask, -float('inf'))
 
     weights = torch.softmax(scores, dim=-1)
     context = weights @ v_h
