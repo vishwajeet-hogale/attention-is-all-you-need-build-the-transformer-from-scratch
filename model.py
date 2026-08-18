@@ -625,8 +625,37 @@ def apply_log_softmax_over_vocab(logits):
     # TODO: Convert decoder logits (B, T, V) into log probabilities over the vocabulary axis.
     return log_softmax(logits, dim = -1)
 
-# Step 51 - run_transformer_forward (not yet solved)
-# TODO: implement
+# Step 51 - run_transformer_forward
+def run_transformer_forward(src_ids, tgt_ids, model_params, num_heads, pad_id):
+    emb = model_params["token_embedding"]
+    d_model = emb.shape[1]
+    S = src_ids.shape[1]
+    T = tgt_ids.shape[1]
+
+    # shared embedding table, scaled, plus positional encoding
+    src = emb[src_ids] * math.sqrt(d_model)
+    tgt = emb[tgt_ids] * math.sqrt(d_model)
+    src = src + build_sinusoidal_positional_encoding(S, d_model)
+    tgt = tgt + build_sinusoidal_positional_encoding(T, d_model)
+
+    # source padding mask -> (B, 1, 1, S)
+    src_mask = (src_ids != pad_id)[:, None, None, :]
+
+    # target: padding AND causal -> (B, 1, T, T)
+    tgt_pad = (tgt_ids != pad_id)[:, None, None, :]
+    causal = torch.tril(torch.ones(T, T, dtype=torch.bool))[None, None, :, :]
+    tgt_mask = tgt_pad & causal
+
+    memory = src
+    for layer in model_params["encoder_layers"]:
+        memory = assemble_encoder_layer(memory, layer, num_heads, src_mask)
+
+    y = tgt
+    for layer in model_params["decoder_layers"]:
+        y = assemble_decoder_layer(y, memory, layer, num_heads, src_mask, tgt_mask)
+
+    logits = y @ model_params["output_projection"].T
+    return torch.log_softmax(logits, dim=-1)
 
 # Step 52 - init_encoder_layer_parameters
 import torch
