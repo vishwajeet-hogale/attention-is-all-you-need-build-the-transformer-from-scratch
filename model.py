@@ -483,8 +483,36 @@ def stack_encoder_layers(x, encoder_layer_params_list, num_heads, src_mask):
 
     return x
 
-# Step 43 - decoder_layer_masked_self_attention_sublayer (not yet solved)
-# TODO: implement
+# Step 43 - decoder_layer_masked_self_attention_sublayer
+import torch
+import math
+
+def decoder_layer_masked_self_attention_sublayer(y, w_q, w_k, w_v, w_o, gamma, beta, num_heads, tgt_mask):
+    # TODO: run masked multi-head self-attention on y and wrap with residual add-and-norm.
+    q, k, v = y @ w_q, y @ w_k, y @ w_v
+    B, S, d_model = q.shape
+    assert d_model % num_heads == 0
+
+    q = q.view(B, S, num_heads, d_model // num_heads).transpose(1,2)
+    k = k.view(B, S, num_heads, d_model // num_heads).transpose(1,2)
+    v = v.view(B, S, num_heads, d_model // num_heads).transpose(1,2)
+
+    scores = q @ k.transpose(-1, -2) / math.sqrt(d_model)
+
+    mask = torch.ones_like(scores,dtype=bool).tril(diagonal = 0)
+    if tgt_mask is not None:
+        mask = mask & tgt_mask
+    
+    scores = scores.masked_fill(~mask, -float('inf'))
+    attn = torch.softmax(scores, dim = -1) @ v
+    attn = attn.transpose(1,2)
+    attn = attn.contiguous().view(B, S, -1)
+    attn = attn @ w_o
+
+    out = y + attn
+    mean = out.mean(dim=-1, keepdim=True)
+    var = out.var(dim=-1, keepdim=True, unbiased=False)
+    return gamma * (out - mean) / torch.sqrt(var + 1e-5) + beta
 
 # Step 44 - decoder_layer_cross_attention_sublayer (not yet solved)
 # TODO: implement
