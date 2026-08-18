@@ -419,8 +419,34 @@ def encoder_layer_feed_forward_sublayer(x, w1, b1, w2, b2, gamma, beta):
     output = position_wise_feed_forward_network(x, w1, b1, w2, b2)
     return apply_residual_add_and_norm(x, output, gamma, beta)
 
-# Step 41 - assemble_encoder_layer (not yet solved)
-# TODO: implement
+# Step 41 - assemble_encoder_layer
+def encoder_layer_self_attention_sublayer(x, w_q, w_k, w_v, w_o, gamma, beta, num_heads, src_mask):
+    # TODO: run multi-head self-attention on x and wrap with residual add-and-norm.
+    q, k, v = x @ w_q, x @ w_k, x @ w_v
+    context = assemble_multi_head_attention_forward(q, k, v, w_q, w_k, w_v, w_o,num_heads, src_mask)
+
+    return apply_residual_add_and_norm(x, context, gamma, beta)
+
+def encoder_layer_feed_forward_sublayer(x, w1, b1, w2, b2, gamma, beta):
+    # TODO: run the position-wise FFN on x and wrap it with residual add-and-norm.
+    output = position_wise_feed_forward_network(x, w1, b1, w2, b2)
+    return apply_residual_add_and_norm(x, output, gamma, beta)
+
+def assemble_encoder_layer(x, layer_params, num_heads, src_mask):
+    # TODO: chain the self-attention sublayer and the feed-forward sublayer using layer_params.
+    p = layer_params
+    attn_out = encoder_layer_self_attention_sublayer(
+        x,
+        p["w_q"], p["w_k"], p["w_v"], p["w_o"],
+        p["attn_gamma"], p["attn_beta"],
+        num_heads, src_mask,
+    )
+
+    return encoder_layer_feed_forward_sublayer(
+        attn_out,
+        p["w1"], p["b1"], p["w2"], p["b2"],
+        p["ffn_gamma"], p["ffn_beta"],
+    )
 
 # Step 42 - stack_encoder_layers (not yet solved)
 # TODO: implement
