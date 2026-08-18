@@ -579,8 +579,26 @@ def assemble_decoder_layer(y, encoder_output, layer_params, num_heads, src_mask,
 
     return y
 
-# Step 47 - stack_decoder_layers (not yet solved)
-# TODO: implement
+# Step 47 - stack_decoder_layers
+def stack_decoder_layers(y, encoder_output, decoder_layer_params_list, num_heads, src_mask, tgt_mask):
+    # TODO: sequentially apply each decoder layer to the running target hidden state.
+    for layer_params in decoder_layer_params_list:
+        p = layer_params
+
+        y = decoder_layer_masked_self_attention_sublayer(
+            y, p["w_q_self"], p["w_k_self"], p["w_v_self"], p["w_o_self"],
+            p["self_gamma"], p["self_beta"], num_heads, tgt_mask)
+
+        y = decoder_layer_cross_attention_sublayer(
+            y, encoder_output,
+            p["w_q_cross"], p["w_k_cross"], p["w_v_cross"], p["w_o_cross"],
+            p["cross_gamma"], p["cross_beta"], num_heads, src_mask)
+
+        y = decoder_layer_feed_forward_sublayer(
+            y, p["w1"], p["b1"], p["w2"], p["b2"],
+            p["ffn_gamma"], p["ffn_beta"])
+
+    return y
 
 # Step 48 - apply_final_output_projection (not yet solved)
 # TODO: implement
