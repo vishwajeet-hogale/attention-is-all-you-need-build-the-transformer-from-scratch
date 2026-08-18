@@ -600,8 +600,13 @@ def stack_decoder_layers(y, encoder_output, decoder_layer_params_list, num_heads
 
     return y
 
-# Step 48 - apply_final_output_projection (not yet solved)
-# TODO: implement
+# Step 48 - apply_final_output_projection
+def apply_final_output_projection(decoder_output, output_projection_weight, output_projection_bias=None):
+    # TODO: project decoder hidden states (B, T, D) to vocabulary logits (B, T, V).
+    out = decoder_output @ output_projection_weight.transpose(-1,-2)
+    if output_projection_bias is not None:
+        out = out + output_projection_bias
+    return out
 
 # Step 49 - tie_output_projection_to_token_embeddings (not yet solved)
 # TODO: implement
