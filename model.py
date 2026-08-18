@@ -514,8 +514,41 @@ def decoder_layer_masked_self_attention_sublayer(y, w_q, w_k, w_v, w_o, gamma, b
     var = out.var(dim=-1, keepdim=True, unbiased=False)
     return gamma * (out - mean) / torch.sqrt(var + 1e-5) + beta
 
-# Step 44 - decoder_layer_cross_attention_sublayer (not yet solved)
-# TODO: implement
+# Step 44 - decoder_layer_cross_attention_sublayer
+import torch
+
+def decoder_layer_cross_attention_sublayer(y, encoder_output, w_q, w_k, w_v, w_o, gamma, beta, num_heads, src_mask):
+    # TODO: run multi-head cross-attention (Q from y, K/V from encoder_output) and wrap with add-and-norm
+    d_model = y.shape[-1]
+    d_k = d_model // num_heads
+    B, T, _ = y.shape
+    S = encoder_output.shape[1]
+
+    # Q from the decoder stream, K/V from the encoder. This asymmetry IS cross-attention.
+    Q = y @ w_q
+    K = encoder_output @ w_k
+    V = encoder_output @ w_v
+
+    Q = Q.view(B, T, num_heads, d_k).transpose(1, 2)   # (B, h, T, d_k)
+    K = K.view(B, S, num_heads, d_k).transpose(1, 2)   # (B, h, S, d_k)
+    V = V.view(B, S, num_heads, d_k).transpose(1, 2)
+
+    scores = (Q @ K.transpose(-2, -1)) / (d_k ** 0.5)  # (B, h, T, S)
+
+    if src_mask is not None:
+        if src_mask.dim() == 2:
+            src_mask = src_mask[:, None, None, :]      # (B, S) -> (B, 1, 1, S)
+        scores = scores.masked_fill(src_mask == 0, -1e9)
+
+    attn = torch.softmax(scores, dim=-1)
+    ctx = (attn @ V).transpose(1, 2).contiguous().view(B, T, d_model)
+    out = ctx @ w_o
+
+    # post-norm residual
+    z = y + out
+    mean = z.mean(-1, keepdim=True)
+    var = z.var(-1, correction=0, keepdim=True)
+    return gamma * (z - mean) / torch.sqrt(var + 1e-5) + beta
 
 # Step 45 - decoder_layer_feed_forward_sublayer (not yet solved)
 # TODO: implement
