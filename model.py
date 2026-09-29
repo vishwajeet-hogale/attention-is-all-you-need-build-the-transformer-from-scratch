@@ -686,8 +686,57 @@ def init_encoder_layer_parameters(d_model, num_heads, d_ff):
         "ffn_gamma": ffn_gamma, "ffn_beta": ffn_beta,
     }
 
-# Step 53 - init_decoder_layer_parameters (not yet solved)
-# TODO: implement
+# Step 53 - init_decoder_layer_parameters
+import torch
+import torch.nn as nn
+
+def init_decoder_layer_parameters(d_model, num_heads, d_ff):
+    # TODO: return a dict of requires_grad tensors for one decoder layer
+    w_q_self = nn.init.xavier_uniform(torch.empty((d_model, d_model), dtype=torch.float32)).requires_grad_(True)
+    w_k_self = nn.init.xavier_uniform(torch.empty((d_model, d_model), dtype=torch.float32)).requires_grad_(True)
+    w_v_self = nn.init.xavier_uniform(torch.empty((d_model, d_model), dtype=torch.float32)).requires_grad_(True)
+
+    w_o_self = nn.init.xavier_uniform(torch.empty((d_model, d_model), dtype=torch.float32)).requires_grad_(True)
+    
+    w_q_cross = nn.init.xavier_uniform(torch.empty((d_model, d_model), dtype=torch.float32)).requires_grad_(True)
+    w_k_cross = nn.init.xavier_uniform(torch.empty((d_model, d_model), dtype=torch.float32)).requires_grad_(True)
+    w_v_cross = nn.init.xavier_uniform(torch.empty((d_model, d_model), dtype=torch.float32)).requires_grad_(True)
+    w_o_cross = nn.init.xavier_uniform(torch.empty((d_model, d_model), dtype=torch.float32)).requires_grad_(True)
+
+    w1 = nn.init.xavier_uniform(torch.empty((d_model, d_ff), dtype=torch.float32)).requires_grad_(True)
+    b1 = torch.zeros(d_ff, dtype=torch.float32).requires_grad_(True)
+
+    w2 = nn.init.xavier_uniform(torch.empty((d_ff, d_model), dtype=torch.float32)).requires_grad_(True)
+    b2 = torch.zeros(d_ff, dtype=torch.float32).requires_grad_(True)
+
+    self_gamma = torch.ones(d_model, requires_grad=True, dtype=torch.float32)
+    self_beta = torch.zeros(d_model, requires_grad=True, dtype=torch.float32)
+
+    cross_gamma = torch.ones(d_model, requires_grad=True, dtype=torch.float32)
+    cross_beta = torch.zeros(d_model, requires_grad=True, dtype=torch.float32)
+
+    ffn_gamma = torch.ones(d_model, requires_grad=True, dtype=torch.float32)
+    ffn_beta = torch.zeros(d_model, requires_grad=True, dtype=torch.float32)
+
+
+    return {
+        'w_q_self' : w_q_self,
+        'w_k_self' : w_k_self,
+        'w_v_self' : w_v_self,
+        'w_o_self' : w_o_self,
+        'w_q_cross' : w_q_cross,
+        'w_k_cross' : w_k_cross,
+        'w_v_cross' : w_v_cross,
+        'w_o_cross': w_o_cross,
+        "w1": w1, "b1": b1, "w2": w2, "b2": b2,
+        "self_gamma": self_gamma, 
+        "self_beta": self_beta, 
+        "cross_gamma": cross_gamma, 
+        "cross_beta": cross_beta, 
+        "ffn_gamma": ffn_gamma, 
+        "ffn_beta": ffn_beta
+
+    }
 
 # Step 54 - init_embedding_and_projection_parameters (not yet solved)
 # TODO: implement
@@ -729,6 +778,9 @@ def init_encoder_layer_parameters(d_model, num_heads, d_ff):
 # TODO: implement
 
 # Step 67 - apply_adam_bias_correction (not yet solved)
+# TODO: implement
+
+# Step 68 - compute_adam_parameter_update (not yet solved)
 # TODO: implement
 
 # Step 69 - apply_adam_step_to_all_parameters (not yet solved)
