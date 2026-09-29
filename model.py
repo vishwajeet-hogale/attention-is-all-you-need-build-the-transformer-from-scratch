@@ -776,8 +776,14 @@ def collect_model_parameters_into_list(encoder_layer_params, decoder_layer_param
     walk(embedding_params)
     return params
 
-# Step 56 - shift_targets_right_with_start_token (not yet solved)
-# TODO: implement
+# Step 56 - shift_targets_right_with_start_token
+def shift_targets_right_with_start_token(target_ids, start_token_id):
+    # TODO: prepend start_token_id and drop the last column so output shape matches target_ids
+    B, num_tokens = target_ids.shape
+    target_ids = target_ids[:, :-1]
+    start_token = torch.tensor(start_token_id, dtype=torch.int32)
+    start_token = start_token.unsqueeze(0).repeat(B,1)
+    return torch.concat([start_token, target_ids], dim=-1)
 
 # Step 57 - compute_noam_learning_rate (not yet solved)
 # TODO: implement
