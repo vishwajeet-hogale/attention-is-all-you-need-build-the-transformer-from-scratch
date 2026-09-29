@@ -732,8 +732,25 @@ def init_decoder_layer_parameters(d_model, num_heads, d_ff):
         "ffn_beta": zeros(d_model),    # was d_ff
     }
 
-# Step 54 - init_embedding_and_projection_parameters (not yet solved)
-# TODO: implement
+# Step 54 - init_embedding_and_projection_parameters
+import torch
+import torch.nn as nn
+
+def init_embedding_and_projection_parameters(vocab_size, d_model, tie_weights=True):
+    """Allocate src/tgt embeddings and output projection (optionally tied)."""
+    # TODO: allocate three (vocab_size, d_model) tensors with requires_grad=True
+    src_embedding = torch.empty((vocab_size, d_model), dtype=torch.float32, requires_grad=True)
+    tgt_embedding = torch.empty((vocab_size, d_model), dtype=torch.float32, requires_grad=True)
+    out_projection = torch.empty((vocab_size, d_model), dtype=torch.float32, requires_grad=True)
+    
+    if tie_weights:
+        out_projection = tgt_embedding
+
+    return {
+        "src_embedding": src_embedding,
+        "tgt_embedding": tgt_embedding,
+        "output_projection": out_projection
+    }
 
 # Step 55 - collect_model_parameters_into_list (not yet solved)
 # TODO: implement
