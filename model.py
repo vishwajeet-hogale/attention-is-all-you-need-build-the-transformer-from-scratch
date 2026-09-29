@@ -691,51 +691,45 @@ import torch
 import torch.nn as nn
 
 def init_decoder_layer_parameters(d_model, num_heads, d_ff):
-    # TODO: return a dict of requires_grad tensors for one decoder layer
-    w_q_self = nn.init.xavier_uniform(torch.empty((d_model, d_model), dtype=torch.float32)).requires_grad_(True)
-    w_k_self = nn.init.xavier_uniform(torch.empty((d_model, d_model), dtype=torch.float32)).requires_grad_(True)
-    w_v_self = nn.init.xavier_uniform(torch.empty((d_model, d_model), dtype=torch.float32)).requires_grad_(True)
+    assert d_model % num_heads == 0, "d_model must be divisible by num_heads"
 
-    w_o_self = nn.init.xavier_uniform(torch.empty((d_model, d_model), dtype=torch.float32)).requires_grad_(True)
-    
-    w_q_cross = nn.init.xavier_uniform(torch.empty((d_model, d_model), dtype=torch.float32)).requires_grad_(True)
-    w_k_cross = nn.init.xavier_uniform(torch.empty((d_model, d_model), dtype=torch.float32)).requires_grad_(True)
-    w_v_cross = nn.init.xavier_uniform(torch.empty((d_model, d_model), dtype=torch.float32)).requires_grad_(True)
-    w_o_cross = nn.init.xavier_uniform(torch.empty((d_model, d_model), dtype=torch.float32)).requires_grad_(True)
+    def xavier(rows, cols):
+        w = torch.empty((rows, cols), dtype=torch.float32)
+        nn.init.xavier_uniform_(w)
+        return w.requires_grad_(True)
 
-    w1 = nn.init.xavier_uniform(torch.empty((d_model, d_ff), dtype=torch.float32)).requires_grad_(True)
-    b1 = torch.zeros(d_ff, dtype=torch.float32).requires_grad_(True)
+    def ones(n):
+        return torch.ones(n, dtype=torch.float32, requires_grad=True)
 
-    w2 = nn.init.xavier_uniform(torch.empty((d_ff, d_model), dtype=torch.float32)).requires_grad_(True)
-    b2 = torch.zeros(d_ff, dtype=torch.float32).requires_grad_(True)
-
-    self_gamma = torch.ones(d_model, requires_grad=True, dtype=torch.float32)
-    self_beta = torch.zeros(d_model, requires_grad=True, dtype=torch.float32)
-
-    cross_gamma = torch.ones(d_model, requires_grad=True, dtype=torch.float32)
-    cross_beta = torch.zeros(d_model, requires_grad=True, dtype=torch.float32)
-
-    ffn_gamma = torch.ones(d_model, requires_grad=True, dtype=torch.float32)
-    ffn_beta = torch.zeros(d_model, requires_grad=True, dtype=torch.float32)
-
+    def zeros(n):
+        return torch.zeros(n, dtype=torch.float32, requires_grad=True)
 
     return {
-        'w_q_self' : w_q_self,
-        'w_k_self' : w_k_self,
-        'w_v_self' : w_v_self,
-        'w_o_self' : w_o_self,
-        'w_q_cross' : w_q_cross,
-        'w_k_cross' : w_k_cross,
-        'w_v_cross' : w_v_cross,
-        'w_o_cross': w_o_cross,
-        "w1": w1, "b1": b1, "w2": w2, "b2": b2,
-        "self_gamma": self_gamma, 
-        "self_beta": self_beta, 
-        "cross_gamma": cross_gamma, 
-        "cross_beta": cross_beta, 
-        "ffn_gamma": ffn_gamma, 
-        "ffn_beta": ffn_beta
+        # masked self-attention
+        "w_q_self": xavier(d_model, d_model),
+        "w_k_self": xavier(d_model, d_model),
+        "w_v_self": xavier(d_model, d_model),
+        "w_o_self": xavier(d_model, d_model),
 
+        # cross-attention
+        "w_q_cross": xavier(d_model, d_model),
+        "w_k_cross": xavier(d_model, d_model),
+        "w_v_cross": xavier(d_model, d_model),
+        "w_o_cross": xavier(d_model, d_model),
+
+        # feed-forward: d_model -> d_ff -> d_model
+        "w1": xavier(d_model, d_ff),
+        "b1": zeros(d_ff),
+        "w2": xavier(d_ff, d_model),
+        "b2": zeros(d_model),          # was d_ff
+
+        # layer norms, all over d_model
+        "self_gamma": ones(d_model),
+        "self_beta": zeros(d_model),
+        "cross_gamma": ones(d_model),
+        "cross_beta": zeros(d_model),
+        "ffn_gamma": ones(d_model),    # was d_ff
+        "ffn_beta": zeros(d_model),    # was d_ff
     }
 
 # Step 54 - init_embedding_and_projection_parameters (not yet solved)
